@@ -2,44 +2,88 @@
 
 namespace DataflowPipelines
 {
+
     public abstract class Node<TInput, TOutput> : INode
     {
         private Func<TInput, TOutput>? runFunction;
 
 
-        //private Pipe<TInput> inputs;
-        //private ConcurrentBag<Pipe<TOutput>> outputs;
+        private Pipe<TInput> inputs;
+        private ConcurrentBag<Pipe<TOutput>> outputs;
+        private TOutput lastOutput;
 
-        private BlockingCollection<TInput> inputs;
-        private BlockingCollection<TOutput> outputs;
+        //private BlockingCollection<TInput> inputs;
+        //private BlockingCollection<TOutput> outputs;
+
+        public Node()
+        {
+            inputs = new Pipe<TInput>();
+            outputs = new ConcurrentBag<Pipe<TOutput>>();
+        }
 
         public Node(Func<TInput, TOutput> runFunction)
         {
             this.runFunction = runFunction;
-            inputs = new BlockingCollection<TInput>();
-            outputs = new BlockingCollection<TOutput>();
+            inputs = new Pipe<TInput>();
+            outputs = new ConcurrentBag<Pipe<TOutput>>();
         }
 
-        public Node<TInput, TOutput> CreateNode(Func<TInput, TOutput> runFunction)
+        public static Node<TInput, TOutput> CreateNode(Func<TInput, TOutput> runFunction)
         {
             return new SimpleNode<TInput, TOutput>(runFunction);
         }
 
         public abstract TOutput Run(TInput input);
 
-        private void SetInput(Node<TInput, TOutput> soureNode)
+        private void SetInput(Node<TOutput, TOutput> destinationNode)
         {
-            this.inputs = (BlockingCollection<TInput>)Convert.ChangeType(soureNode.outputs, typeof(BlockingCollection<TInput>));
+            destinationNode.inputs = this.GetOutput();
+            //destinationNode.inputs = (Pipe<TInput>)Convert.ChangeType(this.GetOutput(), typeof(Pipe<TInput>));
+        }
+        
+
+        // public Node<TOutput, TOutput> ConnectTo(Node<TOutput, TOutput> destinationNode)
+        // {
+        //     SetInput(destinationNode);
+        //     return destinationNode;
+        // }
+        //
+        // public Node<TOutput, TInput> ConnectTo(Node<TOutput, TInput> destinationNode)
+        // {
+        //     destinationNode.inputs = this.GetOutput();
+        //     //SetInput(destinationNode);
+        //     return destinationNode;
+        // }
+        
+        /// <summary>
+        /// Connects this node to destination node:
+        /// (this_node)-[:OUTPUT]-[:INPUT]->(destination_node)
+        /// </summary>
+        /// <param name="destinationNode"></param>
+        /// <returns>Destination node</returns>
+        public Node<TOutput, T> ConnectTo<T>(Node<TOutput, T> destinationNode)
+        {
+            destinationNode.inputs = this.GetOutput();
+            return destinationNode;
         }
 
+        public void AddToInput(TInput input) => inputs.Write(input);
 
-        public void Connect(Node<TInput, TOutput> soureNode)
+        public Pipe<TInput> GetInput() => inputs;
+
+        //public void AddToInput(TInput input) => inputs.Write(input);
+
+        public Pipe<TOutput> GetOutput()
         {
-            SetInput(soureNode);
+            var pipe = new Pipe<TOutput>();
+            outputs.Add(pipe);
+            return pipe;
         }
-        public void AddToInput(TInput input) => inputs.Add(input);
 
-        public BlockingCollection<TOutput> GetOutput() => outputs;
+        // public INode ConnectTo(INode destinationNode)
+        // {
+        //     
+        // }
 
         public void StartProcessing()
         {
@@ -47,15 +91,45 @@ namespace DataflowPipelines
             {
                 while (true)
                 {
-                    TInput item = inputs.Take();
+                    TInput item = inputs.Read();
+                    TOutput outputItem;
                     if (runFunction != null)
-                        outputs.Add(runFunction(item));
+                        outputItem = runFunction(item);
                     else
-                        outputs.Add(this.Run(item));
+                        outputItem = this.Run(item);
+
+                    foreach (var pipe in outputs)
+                    {
+                        pipe.Write(outputItem);
+                    }
+                    lastOutput = outputItem;
 
                 }
             }, TaskCreationOptions.LongRunning);
         }
 
+        //public void AddToInput<T>(T input) where T : TInput
+        //{
+        //    inputs.Write(input);
+        //}
+
+        //public void AddToInput<T, TT>(T input) where T : Node<T, TT>
+        //{
+        //    inputs.Write(input);
+
+        //    //throw new NotImplementedException();
+        //}
+
+        //public void AddToInput<T, TInput, TOutput>(TInput input) where T : Node<TInput, TOutput>
+        //{
+        //    inputs.Write(input);
+
+        //}
+
+
+        //public void AddToInput(TInput input)
+        //{
+        //    inputs.Write(input);
+        //}
     }
 }

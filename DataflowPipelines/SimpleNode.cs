@@ -8,7 +8,7 @@ namespace DataflowPipelines
 {
     sealed class SimpleNode<TInput, TOutput> : Node<TInput, TOutput>
     {
-        public SimpleNode(Func<TInput, TOutput> runFunction) : base(runFunction)
+        protected internal SimpleNode(Func<TInput, TOutput> runFunction) : base(runFunction)
         {
         }
 

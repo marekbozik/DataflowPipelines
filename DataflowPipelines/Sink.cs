@@ -7,24 +7,31 @@ using System.Threading.Tasks;
 
 namespace DataflowPipelines
 {
-    public class Sink<T>
+    public class Sink<TOutput>
     {
 
-        private BlockingCollection<T> outputs;
+        private Pipe<TOutput> outputs;
 
-        public Sink(Node<T, T> node)
+        private Sink()
         {
-            outputs = node.GetOutput();
+            //outputs = node.GetOutput();
         }
 
-        public bool TryGet(out T item)
+        public static Sink<TOutput> CreateSink<T>(Node<T, TOutput> node)
         {
-            return outputs.TryTake(out item);
+            var sink = new Sink<TOutput>();
+            sink.outputs = node.GetOutput();
+            return sink;
         }
 
-        public T Get()
+        //public bool TryGet(out T item)
+        //{
+        //    return outputs.TryTake(out item);
+        //}
+
+        public TOutput Get()
         {
-            return outputs.Take();
+            return outputs.Read();
         }
     }
 }

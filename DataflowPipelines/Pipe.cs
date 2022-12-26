@@ -11,5 +11,15 @@ namespace DataflowPipelines
             PipeStorage = new BlockingCollection<T>();  
         }
 
+        public void Write(T item)
+        {
+            this.PipeStorage.Add(item);
+        }
+
+        public T Read()
+        {
+            return this.PipeStorage.Take();
+        }
+
     }
 }
