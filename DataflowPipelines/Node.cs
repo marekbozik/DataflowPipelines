@@ -6,25 +6,23 @@ namespace DataflowPipelines
     public abstract class Node<TInput, TOutput> : INode
     {
         private Func<TInput, TOutput>? runFunction;
-
-
-        private Pipe<TInput> inputs;
+        public Pipe<TInput> Input { get; set; } 
+        private ConcurrentBag<Pipe<TInput>> destinationInputs;
         private ConcurrentBag<Pipe<TOutput>> outputs;
         private TOutput lastOutput;
 
-        //private BlockingCollection<TInput> inputs;
-        //private BlockingCollection<TOutput> outputs;
-
-        public Node()
+        protected Node()
         {
-            inputs = new Pipe<TInput>();
+            Input = new Pipe<TInput>();
+            destinationInputs = new ConcurrentBag<Pipe<TInput>>();
             outputs = new ConcurrentBag<Pipe<TOutput>>();
         }
 
-        public Node(Func<TInput, TOutput> runFunction)
+        protected Node(Func<TInput, TOutput> runFunction)
         {
             this.runFunction = runFunction;
-            inputs = new Pipe<TInput>();
+            Input = new Pipe<TInput>();
+            destinationInputs = new ConcurrentBag<Pipe<TInput>>();
             outputs = new ConcurrentBag<Pipe<TOutput>>();
         }
 
@@ -34,27 +32,12 @@ namespace DataflowPipelines
         }
 
         public abstract TOutput Run(TInput input);
-
-        private void SetInput(Node<TOutput, TOutput> destinationNode)
+        
+        private void AddDestinationInput()
         {
-            destinationNode.inputs = this.GetOutput();
-            //destinationNode.inputs = (Pipe<TInput>)Convert.ChangeType(this.GetOutput(), typeof(Pipe<TInput>));
+            this.destinationInputs.Add(Input);
         }
-        
 
-        // public Node<TOutput, TOutput> ConnectTo(Node<TOutput, TOutput> destinationNode)
-        // {
-        //     SetInput(destinationNode);
-        //     return destinationNode;
-        // }
-        //
-        // public Node<TOutput, TInput> ConnectTo(Node<TOutput, TInput> destinationNode)
-        // {
-        //     destinationNode.inputs = this.GetOutput();
-        //     //SetInput(destinationNode);
-        //     return destinationNode;
-        // }
-        
         /// <summary>
         /// Connects this node to destination node:
         /// (this_node)-[:OUTPUT]-[:INPUT]->(destination_node)
@@ -63,15 +46,16 @@ namespace DataflowPipelines
         /// <returns>Destination node</returns>
         public Node<TOutput, T> ConnectTo<T>(Node<TOutput, T> destinationNode)
         {
-            destinationNode.inputs = this.GetOutput();
+            //destinationNode.input = this.GetOutput();
+            this.GetOutput().StreamTo(destinationNode.Input);
+            //this.destinationInputs.Add(destinationNode.Input);
+            //destinationNode.destinationInputs.Add(this.GetOutput());
             return destinationNode;
         }
 
-        public void AddToInput(TInput input) => inputs.Write(input);
+        public void AddToInput(TInput input) => this.Input.Write(input);
 
-        public Pipe<TInput> GetInput() => inputs;
-
-        //public void AddToInput(TInput input) => inputs.Write(input);
+        public Pipe<TInput> GetInput() => Input;
 
         public Pipe<TOutput> GetOutput()
         {
@@ -80,18 +64,20 @@ namespace DataflowPipelines
             return pipe;
         }
 
-        // public INode ConnectTo(INode destinationNode)
-        // {
-        //     
-        // }
-
         public void StartProcessing()
         {
             Task.Factory.StartNew(() =>
             {
                 while (true)
                 {
-                    TInput item = inputs.Read();
+                    //foreach(var i in inputs)
+                    //{
+                    //    foreach (var items in i.ReadAll())
+                    //    {
+                    //        input.Write(items);
+                    //    }
+                    //}
+                    TInput item = Input.Read();
                     TOutput outputItem;
                     if (runFunction != null)
                         outputItem = runFunction(item);
@@ -107,29 +93,5 @@ namespace DataflowPipelines
                 }
             }, TaskCreationOptions.LongRunning);
         }
-
-        //public void AddToInput<T>(T input) where T : TInput
-        //{
-        //    inputs.Write(input);
-        //}
-
-        //public void AddToInput<T, TT>(T input) where T : Node<T, TT>
-        //{
-        //    inputs.Write(input);
-
-        //    //throw new NotImplementedException();
-        //}
-
-        //public void AddToInput<T, TInput, TOutput>(TInput input) where T : Node<TInput, TOutput>
-        //{
-        //    inputs.Write(input);
-
-        //}
-
-
-        //public void AddToInput(TInput input)
-        //{
-        //    inputs.Write(input);
-        //}
     }
 }

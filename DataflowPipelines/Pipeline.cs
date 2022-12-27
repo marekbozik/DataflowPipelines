@@ -10,13 +10,10 @@ namespace DataflowPipelines
     {
 
         public LinkedList<INode> Nodes { get; }
-        //public LinkedList<INode> RootNodes { get; }
-
-
+        
         public Pipeline()
         {
             Nodes = new LinkedList<INode>();
-            //RootNodes = new LinkedList<INode>();
         }
 
         public void AddNode(INode node)
@@ -40,22 +37,12 @@ namespace DataflowPipelines
             }
         }
 
-        //public void AddRootNode<T>(Node<TInput,T> node)
-        //{
-        //    RootNodes.AddLast(node);
-        //}
-
         public void Compose()
         {
             foreach (var node in Nodes)
             {
                node.StartProcessing(); 
             }
-
-            //foreach (var rootNode in RootNodes)
-            //{
-            //    rootNode.StartProcessing();
-            //}
         }
 
     }
