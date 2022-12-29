@@ -6,6 +6,7 @@ namespace DataflowPipelines
     {
         public BlockingCollection<T> PipeStorage { get; set; }
         private ConcurrentBag<Pipe<T>> pipeStreams;
+        public bool HasStreamers { get => pipeStreams.Count > 0; }
 
         public Pipe()
         {
