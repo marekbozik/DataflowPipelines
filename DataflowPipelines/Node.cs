@@ -15,6 +15,7 @@ namespace DataflowPipelines
         {
             Input = new Pipe<TInput>();
             outputs = new ConcurrentBag<Pipe<TOutput>>();
+            output = new Pipe<TOutput>();
         }
 
         public static Node<TInput, TOutput> CreateNode(Func<TInput, TOutput> runFunction)
