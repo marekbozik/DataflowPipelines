@@ -66,6 +66,7 @@ namespace DataflowPipelines
     
                     outputItem = this.Run(item);
 
+                    output.Write(outputItem);
                     foreach (var pipe in outputs)
                     {
                         pipe.Write(outputItem);
