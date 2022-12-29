@@ -68,10 +68,8 @@ namespace DataflowPipelines
                 {
                     TInput item = Input.Read();
                     TOutput outputItem;
-                    if (runFunction != null)
-                        outputItem = runFunction(item);
-                    else
-                        outputItem = this.Run(item);
+    
+                    outputItem = this.Run(item);
 
                     foreach (var pipe in outputs)
                     {
