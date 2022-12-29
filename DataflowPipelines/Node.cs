@@ -7,14 +7,12 @@ namespace DataflowPipelines
     {
         private Func<TInput, TOutput>? runFunction;
         public Pipe<TInput> Input { get; set; } 
-        private ConcurrentBag<Pipe<TInput>> destinationInputs;
         private ConcurrentBag<Pipe<TOutput>> outputs;
         private TOutput lastOutput;
 
         protected Node()
         {
             Input = new Pipe<TInput>();
-            destinationInputs = new ConcurrentBag<Pipe<TInput>>();
             outputs = new ConcurrentBag<Pipe<TOutput>>();
         }
 
@@ -22,7 +20,6 @@ namespace DataflowPipelines
         {
             this.runFunction = runFunction;
             Input = new Pipe<TInput>();
-            destinationInputs = new ConcurrentBag<Pipe<TInput>>();
             outputs = new ConcurrentBag<Pipe<TOutput>>();
         }
 
@@ -31,25 +28,24 @@ namespace DataflowPipelines
             return new SimpleNode<TInput, TOutput>(runFunction);
         }
 
+        /// <summary>
+        /// This method implements node application logic
+        /// </summary>
+        /// <remarks>This method must be implemented in derived classes</remarks>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public abstract TOutput Run(TInput input);
-        
-        private void AddDestinationInput()
-        {
-            this.destinationInputs.Add(Input);
-        }
 
         /// <summary>
         /// Connects this node to destination node:
         /// (this_node)-[:OUTPUT]-[:INPUT]->(destination_node)
         /// </summary>
         /// <param name="destinationNode"></param>
+        /// <remarks>This method can be chained</remarks>
         /// <returns>Destination node</returns>
         public Node<TOutput, T> ConnectTo<T>(Node<TOutput, T> destinationNode)
         {
-            //destinationNode.input = this.GetOutput();
             this.GetOutput().StreamTo(destinationNode.Input);
-            //this.destinationInputs.Add(destinationNode.Input);
-            //destinationNode.destinationInputs.Add(this.GetOutput());
             return destinationNode;
         }
 
@@ -70,19 +66,10 @@ namespace DataflowPipelines
             {
                 while (true)
                 {
-                    //foreach(var i in inputs)
-                    //{
-                    //    foreach (var items in i.ReadAll())
-                    //    {
-                    //        input.Write(items);
-                    //    }
-                    //}
                     TInput item = Input.Read();
                     TOutput outputItem;
-                    if (runFunction != null)
-                        outputItem = runFunction(item);
-                    else
-                        outputItem = this.Run(item);
+    
+                    outputItem = this.Run(item);
 
                     foreach (var pipe in outputs)
                     {
