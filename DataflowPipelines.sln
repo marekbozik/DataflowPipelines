@@ -5,7 +5,9 @@ VisualStudioVersion = 17.3.32929.385
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataflowPipelines", "DataflowPipelines\DataflowPipelines.csproj", "{009E1320-44E9-4865-9F87-5753E452F2A6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleApp", "SampleApp\SampleApp.csproj", "{9BA91C34-47D4-45B9-8ED9-1E33BCF6FDAD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleApp", "SampleApp\SampleApp.csproj", "{9BA91C34-47D4-45B9-8ED9-1E33BCF6FDAD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTesting", "UnitTesting\UnitTesting.csproj", "{1E259012-6066-419E-B9BB-62FFF41EBCF9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{9BA91C34-47D4-45B9-8ED9-1E33BCF6FDAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9BA91C34-47D4-45B9-8ED9-1E33BCF6FDAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9BA91C34-47D4-45B9-8ED9-1E33BCF6FDAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E259012-6066-419E-B9BB-62FFF41EBCF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E259012-6066-419E-B9BB-62FFF41EBCF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E259012-6066-419E-B9BB-62FFF41EBCF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E259012-6066-419E-B9BB-62FFF41EBCF9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
