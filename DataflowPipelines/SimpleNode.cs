@@ -9,7 +9,7 @@ namespace DataflowPipelines
     sealed class SimpleNode<TInput, TOutput> : Node<TInput, TOutput>
     {
         private Func<TInput, TOutput> runFunction;
-        protected internal SimpleNode(Func<TInput, TOutput> runFunction) : base(runFunction)
+        protected internal SimpleNode(Func<TInput, TOutput> runFunction) : base()
         {
             if (runFunction == null) 
                 throw new ArgumentNullException(nameof(runFunction));
