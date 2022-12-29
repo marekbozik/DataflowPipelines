@@ -5,20 +5,14 @@ namespace DataflowPipelines
 
     public abstract class Node<TInput, TOutput> : INode
     {
-        private Func<TInput, TOutput>? runFunction;
+
         public Pipe<TInput> Input { get; set; } 
         private ConcurrentBag<Pipe<TOutput>> outputs;
+        private Pipe<TOutput> output;
         private TOutput lastOutput;
 
         protected Node()
         {
-            Input = new Pipe<TInput>();
-            outputs = new ConcurrentBag<Pipe<TOutput>>();
-        }
-
-        protected Node(Func<TInput, TOutput> runFunction)
-        {
-            this.runFunction = runFunction;
             Input = new Pipe<TInput>();
             outputs = new ConcurrentBag<Pipe<TOutput>>();
         }
@@ -45,7 +39,7 @@ namespace DataflowPipelines
         /// <returns>Destination node</returns>
         public Node<TOutput, T> ConnectTo<T>(Node<TOutput, T> destinationNode)
         {
-            this.GetOutput().StreamTo(destinationNode.Input);
+            this.output.StreamTo(destinationNode.Input);
             return destinationNode;
         }
 

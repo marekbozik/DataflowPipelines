@@ -2,7 +2,7 @@
 
 namespace DataflowPipelines
 {
-    public class Pipe<T>
+    public sealed class Pipe<T>
     {
         public BlockingCollection<T> PipeStorage { get; set; }
         private ConcurrentBag<Pipe<T>> pipeStreams;
@@ -13,18 +13,40 @@ namespace DataflowPipelines
             pipeStreams = new ConcurrentBag<Pipe<T>>();
         }
 
+        /// <summary>
+        /// Writes item into pipe or streams item into different node if any
+        /// </summary>
+        /// <param name="item"></param>
         public void Write(T item)
         {
-            this.PipeStorage.Add(item);
+            if (pipeStreams.IsEmpty)
+                this.PipeStorage.Add(item);
+
             foreach (var pipe in pipeStreams)
             {
                 pipe.Write(item);
             }
         }
 
+        /// <summary>
+        /// Reads item from pipe
+        /// </summary>
+        /// <remarks>This is blocking call</remarks>
+        /// <returns></returns>
         public T Read()
         {
             return this.PipeStorage.Take();
+        }
+
+        /// <summary>
+        /// Reads item from pipe
+        /// </summary>
+        /// <remarks>Non blocking call</remarks>
+        /// <param name="item"></param>
+        /// <returns><c>true</c> if any item read</returns>
+        public bool TryRead(out T item)
+        {
+            return this.PipeStorage.TryTake(out item);
         }
 
         /// <summary>
