@@ -20,3 +20,5 @@ Console.WriteLine(sink.Get()); //output: 5
 
 source.Add((50, 100));
 Console.WriteLine(sink.Get()); //output: 75
+
+middleNumberPipeline.Down();
