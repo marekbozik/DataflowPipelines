@@ -28,6 +28,8 @@ namespace DataflowPipelines
 
             source.Add((10, 0));
             Console.WriteLine(sink.Get());
+
+            middleNumberPipeline.Down();
         }
     }
 }

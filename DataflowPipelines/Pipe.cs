@@ -33,6 +33,17 @@ namespace DataflowPipelines
         /// Reads item from pipe
         /// </summary>
         /// <remarks>This is blocking call</remarks>
+        /// <exception cref="OperationCanceledException"></exception>
+        /// <returns></returns>
+        public T Read(CancellationTokenSource cancellationToken)
+        {
+            return this.PipeStorage.Take(cancellationToken.Token);
+        }
+
+        /// <summary>
+        /// Reads item from pipe
+        /// </summary>
+        /// <remarks>This is blocking call</remarks>
         /// <returns></returns>
         public T Read()
         {
