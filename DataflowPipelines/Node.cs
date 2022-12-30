@@ -10,12 +10,14 @@ namespace DataflowPipelines
         private ConcurrentBag<Pipe<TOutput>> outputs;
         private Pipe<TOutput> output;
         private TOutput lastOutput;
-
+        private Task processingTask;
+        private CancellationTokenSource cancellationToken;
         protected Node()
         {
             Input = new Pipe<TInput>();
             outputs = new ConcurrentBag<Pipe<TOutput>>();
             output = new Pipe<TOutput>();
+            cancellationToken = new CancellationTokenSource();
         }
 
         public static Node<TInput, TOutput> CreateNode(Func<TInput, TOutput> runFunction)
@@ -55,16 +57,46 @@ namespace DataflowPipelines
             return pipe;
         }
 
+        public async Task CancelProcessing()
+        {
+            cancellationToken.Cancel();
+            try
+            {
+                await processingTask;
+            }
+            catch (OperationCanceledException)
+            {
+                ;
+            }
+            finally
+            {
+                cancellationToken.Dispose();
+            }
+            cancellationToken = new CancellationTokenSource();
+        }
+
         public void StartProcessing()
         {
-            Task.Factory.StartNew(() =>
+            processingTask = new Task(() =>
             {
                 while (true)
                 {
-                    TInput item = Input.Read();
+                    TInput item;
+                    try
+                    {
+                        item = Input.Read(this.cancellationToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                       break;
+                    }
+
                     TOutput outputItem;
-    
+
                     outputItem = this.Run(item);
+
+                    if (this.cancellationToken.IsCancellationRequested)
+                        break;
 
                     if (output.HasStreamers)
                         output.Write(outputItem);
@@ -76,7 +108,9 @@ namespace DataflowPipelines
                     lastOutput = outputItem;
 
                 }
-            }, TaskCreationOptions.LongRunning);
+            }, this.cancellationToken.Token, TaskCreationOptions.LongRunning);
+
+            processingTask.Start();
         }
     }
 }

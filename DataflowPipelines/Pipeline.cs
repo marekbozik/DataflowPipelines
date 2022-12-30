@@ -37,12 +37,28 @@ namespace DataflowPipelines
             }
         }
 
+        /// <summary>
+        /// Composes pipeline 
+        /// </summary>
         public void Compose()
         {
             foreach (var node in Nodes)
             {
                node.StartProcessing(); 
             }
+        }
+
+        /// <summary>
+        /// Stops pipeline processing
+        /// </summary>
+        public void Down()
+        {
+            List<Task> tasks = new(this.Nodes.Count);
+            foreach (var node in this.Nodes)
+            {
+                tasks.Add(node.CancelProcessing());
+            }
+            Task.WaitAll(tasks.ToArray());
         }
 
     }
